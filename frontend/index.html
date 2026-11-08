@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a111a" />
+  <meta name="description" content="Smart Automotive Assembly Line Manufacturing Execution System dashboard." />
+  <title>Smart Automotive Assembly Line MES</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-main">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="brand-copy">
+          <p class="eyebrow">MANUFACTURING EXECUTION SYSTEM</p>
+          <h1>Automotive Assembly <span> / </span> MES</h1>
+        </div>
+      </div>
+      <div class="topbar-tools">
+        <span class="environment-label"><span class="live-dot"></span> SIMULATION ENVIRONMENT</span>
+        <button id="theme-toggle" type="button" title="Ganti tema" aria-label="Ganti tema">🌙 Dark</button>
+      </div>
+    </div>
+    <div class="status-strip">
+      <div class="badges" aria-label="Status work order">
+        <span class="badge sim">DATA SIMULASI · BUKAN DATA MESIN FISIK</span>
+        <span id="run-code" class="badge">Belum ada work order</span>
+        <span id="run-status" class="badge status-belum-ada-wo">BELUM ADA WO</span>
+      </div>
+      <span class="system-caption">PRODUCTION FLOOR <span class="caption-divider">/</span> ASSEMBLY LINE</span>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" role="alert" aria-live="polite" hidden></div>
+
+  <main class="layout">
+    <section class="panel panel--simulation" id="panel-3d" aria-labelledby="simulation-title">
+      <div class="section-heading simulation-heading">
+        <div>
+          <p class="eyebrow">LIVE LINE VISUALIZATION</p>
+          <h2 id="simulation-title">3D Production Simulation</h2>
+          <p class="section-description">Visualisasi alur chassis, wheel assembly, dan quality inspection.</p>
+        </div>
+        <button id="btn-expand" class="button button--quiet button--compact" type="button" title="Perbesar tampilan 3D" aria-label="Perbesar tampilan 3D">⛶ <span>Perbesar</span></button>
+      </div>
+      <div id="stage" aria-label="Visualisasi tiga dimensi lini perakitan"></div>
+      <div class="simulation-footer">
+        <div class="control-group control-group--primary" aria-label="Kontrol simulasi">
+          <button id="btn-start" class="button button--primary" type="button" disabled><span class="button-symbol" aria-hidden="true">▶</span> Start</button>
+          <button id="btn-pause" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">Ⅱ</span> Pause</button>
+          <button id="btn-reset" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">↻</span> Reset</button>
+        </div>
+        <span class="control-divider" aria-hidden="true"></span>
+        <div class="control-group" aria-label="Kontrol gangguan simulasi">
+          <button id="btn-down" class="button button--warning" type="button" disabled>Simulate Downtime</button>
+          <button id="btn-recover" class="button" type="button" disabled>Recover</button>
+          <button id="btn-ng" class="button button--danger-quiet" type="button" disabled>Force NG (unit berikutnya)</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--overview" aria-labelledby="overview-title">
+      <div class="section-heading section-heading--compact">
+        <div>
+          <p class="eyebrow">PRODUCTION OVERVIEW</p>
+          <h2 id="overview-title">Output & Performance</h2>
+        </div>
+        <span class="section-index">01</span>
+      </div>
+      <div class="work-order-summary">
+        <div class="summary-heading">
+          <span class="micro-label">ACTIVE WORK ORDER</span>
+          <h3 id="wo-title">Belum ada work order</h3>
+        </div>
+        <div class="progress-track" aria-label="Progress produksi"><div id="progress-bar"></div></div>
+        <div class="progress-legend"><span>Production progress</span><span>Target output</span></div>
+      </div>
+      <div class="kpi-section">
+        <div class="subsection-heading"><h3>Key production indicators</h3><span>API METRICS</span></div>
+        <div class="kpis">
+          <div class="kpi kpi--good"><span>Good output <i>OK</i></span><b id="kpi-ok" class="ok">0</b><small>Unit accepted</small></div>
+          <div class="kpi kpi--defect"><span>Defect <i>NG</i></span><b id="kpi-ng" class="ng">0</b><small>Unit rejected</small></div>
+          <div class="kpi"><span>Quality rate</span><b id="kpi-quality">N/A</b><small>First-pass quality</small></div>
+          <div class="kpi"><span>Avg. cycle time</span><b id="kpi-cycle">N/A</b><small>Per unit</small></div>
+          <div class="kpi"><span>Total downtime</span><b id="kpi-downtime">0.0 s</b><small>Accumulated stop time</small></div>
+          <div class="kpi kpi--estimate"><span>OEE <i>EST.</i></span><b id="kpi-oee">N/A</b><small>Estimated indicator</small></div>
+        </div>
+      </div>
+      <div class="station-section">
+        <div class="subsection-heading"><h3>Workstation status</h3><span>3 STATIONS</span></div>
+        <div class="stations">
+          <div class="station idle" data-station="loading">
+            <div class="station-topline"><span class="station-number">01</span><span class="station-indicator" aria-hidden="true"></span></div>
+            <span class="station-name">Chassis Loading</span>
+            <b class="st-status">Idle</b>
+            <small>Downtime <span class="st-down">0.0 s</span></small>
+          </div>
+          <div class="station idle" data-station="assembly">
+            <div class="station-topline"><span class="station-number">02</span><span class="station-indicator" aria-hidden="true"></span></div>
+            <span class="station-name">Wheel Assembly</span>
+            <b class="st-status">Idle</b>
+            <small>Downtime <span class="st-down">0.0 s</span></small>
+          </div>
+          <div class="station idle" data-station="inspection">
+            <div class="station-topline"><span class="station-number">03</span><span class="station-indicator" aria-hidden="true"></span></div>
+            <span class="station-name">Quality Inspection</span>
+            <b class="st-status">Idle</b>
+            <small>Downtime <span class="st-down">0.0 s</span></small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--events" aria-labelledby="events-title">
+      <div class="section-heading section-heading--compact">
+        <div>
+          <p class="eyebrow">TRACEABILITY</p>
+          <h2 id="events-title">Production Event Log</h2>
+        </div>
+        <span class="section-index">02</span>
+      </div>
+      <div class="table-frame">
+        <table>
+          <thead><tr><th scope="col">Timestamp</th><th scope="col">Event description</th></tr></thead>
+          <tbody id="event-log"><tr class="empty-row"><td colspan="2">Belum ada aktivitas. Buat work order untuk memulai produksi.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel panel--workorder" aria-labelledby="workorder-title">
+      <div class="section-heading section-heading--compact">
+        <div>
+          <p class="eyebrow">PRODUCTION SETUP</p>
+          <h2 id="workorder-title">Create Work Order</h2>
+        </div>
+        <span class="section-index">03</span>
+      </div>
+      <p class="section-description workorder-description">Atur target produksi dan estimasi tingkat defect sebelum menjalankan simulasi.</p>
+      <form id="wo-form">
+        <label for="in-target">Target produksi <span>UNIT</span><input id="in-target" type="number" min="1" max="100" step="1" value="20" required /></label>
+        <label for="in-ngrate">NG rate <span>PERCENT</span><input id="in-ngrate" type="number" min="0" max="100" step="any" value="15" required /></label>
+        <button type="submit" class="button button--primary submit-button"><span class="button-symbol" aria-hidden="true">＋</span> Buat WO dan Run</button>
+      </form>
+      <div class="process-note"><span class="note-mark" aria-hidden="true">i</span><p><strong>Process configuration</strong>Durasi proses tetap: loading 2 s, assembly 3 s, inspeksi 2 s. Jumlah NG dihitung dari target dikali NG rate, lalu dibulatkan. Unit NG dipilih secara acak.</p></div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
