@@ -454,3 +454,7 @@ body.light .banner { background: #fff0f0; color: #913b42; border-color: #efc9cc;
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+   .event-downtime td {
+     color: #f5b041;
+     background: rgba(245, 176, 65, 0.08);
+   }
