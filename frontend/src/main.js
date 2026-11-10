@@ -40,8 +40,16 @@ function syncButtons() {
   $("btn-pause").disabled = !(s === "running" || s === "paused") || engine.downtime;
   $("btn-pause").textContent = s === "paused" ? "Resume" : "Pause";
   $("btn-reset").disabled = !engine.wo;
-  $("btn-down").disabled = !(s === "running" && !engine.downtime);
-  $("btn-recover").disabled = !engine.downtime;
+  $("btn-down").disabled =
+    !(
+      s === "running" &&
+      !engine.downtime &&
+      !engine.downtimePending
+    );
+
+  $("btn-recover").disabled =
+    !engine.downtime ||
+    engine.downtimePending;
   $("btn-ng").disabled = !(s === "ready" || s === "running" || s === "paused");
   $("btn-ng").textContent = engine.forceNG ? "Force NG: aktif" : "Force NG (unit berikutnya)";
 }
