@@ -584,15 +584,7 @@ tbody tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: .01ms !important;
-  }
-}
-
+/* ---------- 10. Event log: highlight dan filter ---------- */
 .event-downtime td {
   color: var(--warn);
   background: color-mix(in srgb, var(--warn) 10%, transparent);
@@ -601,4 +593,17 @@ tbody tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent
 .event-downtime.event-recovered td {
   color: var(--ok);
   background: color-mix(in srgb, var(--ok) 10%, transparent);
+}
+
+.event-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.event-filter .button[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
 }

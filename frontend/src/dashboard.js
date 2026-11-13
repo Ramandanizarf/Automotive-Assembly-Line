@@ -11,6 +11,9 @@ export class Dashboard {
   constructor(engine) {
     this.engine = engine;
     this.busy = false;
+    this.allEvents = [];
+    this.eventFilter = "all";
+    this.filterBar = null;
     engine.addEventListener("change", () => this.renderLive());
     engine.addEventListener("finished", () => this.refresh()); // update segera setelah unit selesai
     engine.addEventListener("loaded", () => this.refresh());
@@ -39,7 +42,7 @@ export class Dashboard {
     if (!e.wo || this.busy) return;
     this.busy = true;
     try {
-      const [d, ev] = await Promise.all([api.dashboard(e.wo.id), api.events(e.wo.id, 15)]);
+      const [d, ev] = await Promise.all([api.dashboard(e.wo.id), api.events(e.wo.id, 100)]);
       if (d) this.renderSummary(d);
       this.renderEvents(ev);
     } catch (err) {
@@ -63,13 +66,74 @@ export class Dashboard {
     }
   }
 
+  // ---------- event log + filter ----------
   renderEvents(items) {
+    this.allEvents = items || [];
+    this.ensureEventFilter();
+    this.drawEvents(this.filterEvents(this.allEvents));
+  }
+
+  filterEvents(items) {
+    const f = this.eventFilter;
+    if (f === "all") return items;
+    const tests = {
+      ok: /inspeksi: OK/i,
+      ng: /inspeksi: NG/i,
+      downtime: /downtime/i,
+    };
+    return items.filter((e) => tests[f].test(e.message));
+  }
+
+  ensureEventFilter() {
+    if (this.filterBar) return;
+    const frame = $("event-log").closest(".table-frame");
+    if (!frame) return;
+
+    const bar = document.createElement("div");
+    bar.className = "event-filter";
+    const options = [
+      ["all", "Semua"],
+      ["ok", "OK"],
+      ["ng", "NG"],
+      ["downtime", "Downtime"],
+    ];
+    for (const [value, label] of options) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "button button--compact button--quiet";
+      b.textContent = label;
+      b.dataset.filter = value;
+      b.addEventListener("click", () => this.setEventFilter(value));
+      bar.appendChild(b);
+    }
+    frame.before(bar);
+    this.filterBar = bar;
+    this.updateFilterButtons();
+  }
+
+  setEventFilter(value) {
+    this.eventFilter = value;
+    this.updateFilterButtons();
+    this.drawEvents(this.filterEvents(this.allEvents));
+  }
+
+  updateFilterButtons() {
+    if (!this.filterBar) return;
+    for (const b of this.filterBar.children) {
+      b.setAttribute("aria-pressed", String(b.dataset.filter === this.eventFilter));
+    }
+  }
+
+  drawEvents(items) {
     if (!items?.length) {
       const row = document.createElement("tr");
       row.className = "empty-row";
       const cell = document.createElement("td");
       cell.colSpan = 2;
-      cell.textContent = "Belum ada aktivitas untuk work order ini.";
+      cell.textContent =
+        this.allEvents.length && this.eventFilter !== "all"
+          ? "Tidak ada event untuk filter ini."
+          : "Belum ada aktivitas untuk work order ini.";
       row.appendChild(cell);
       $("event-log").replaceChildren(row);
       return;
