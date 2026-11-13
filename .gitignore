@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 backend/mes.db
 .venv/
+
+# System and cache files
+.DS_Store
+frontend/.vite/

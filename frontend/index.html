@@ -3,12 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0a111a" />
+  <meta name="theme-color" content="#0b1520" />
   <meta name="description" content="Smart Automotive Assembly Line Manufacturing Execution System dashboard." />
   <title>Smart Automotive Assembly Line MES</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
+
+  <!-- ============ HEADER ============ -->
   <header class="topbar">
     <div class="topbar-main">
       <div class="brand-lockup">
@@ -35,7 +41,10 @@
 
   <div id="banner" class="banner" role="alert" aria-live="polite" hidden></div>
 
+  <!-- ============ DASHBOARD ============ -->
   <main class="layout">
+
+    <!-- 3D Simulation -->
     <section class="panel panel--simulation" id="panel-3d" aria-labelledby="simulation-title">
       <div class="section-heading simulation-heading">
         <div>
@@ -45,22 +54,50 @@
         </div>
         <button id="btn-expand" class="button button--quiet button--compact" type="button" title="Perbesar tampilan 3D" aria-label="Perbesar tampilan 3D">⛶ <span>Perbesar</span></button>
       </div>
+
       <div id="stage" aria-label="Visualisasi tiga dimensi lini perakitan"></div>
+
       <div class="simulation-footer">
-        <div class="control-group control-group--primary" aria-label="Kontrol simulasi">
-          <button id="btn-start" class="button button--primary" type="button" disabled><span class="button-symbol" aria-hidden="true">▶</span> Start</button>
-          <button id="btn-pause" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">Ⅱ</span> Pause</button>
-          <button id="btn-reset" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">↻</span> Reset</button>
+
+        <!-- Baris 1: kontrol utama + kecepatan -->
+        <div class="toolbar">
+          <div class="control-group control-group--primary" aria-label="Kontrol simulasi">
+            <button id="btn-start" class="button button--primary" type="button" disabled><span class="button-symbol" aria-hidden="true">▶</span> Start</button>
+            <button id="btn-pause" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">Ⅱ</span> Pause</button>
+            <button id="btn-reset" class="button" type="button" disabled><span class="button-symbol" aria-hidden="true">↻</span> Reset</button>
+          </div>
+
+          <div class="speed-control" aria-label="Pengaturan kecepatan simulasi">
+            <div class="speed-control__heading">
+              <label for="simulation-speed">
+                <span>
+                  <svg class="speed-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2 3.5v9l6-4.5-6-4.5Zm6 0v9l6-4.5-6-4.5Z" fill="currentColor"/></svg>
+                  Simulation Speed
+                </span>
+                <strong id="speed-value">1.0x</strong>
+              </label>
+            </div>
+            <input type="range" id="simulation-speed" min="0.5" max="3" step="0.5" value="1" aria-label="Atur kecepatan simulasi" />
+            <div class="speed-control__scale" aria-hidden="true">
+              <span>0.5x</span><span>1.0x</span><span>1.5x</span><span>2.0x</span><span>2.5x</span><span>3.0x</span>
+            </div>
+          </div>
         </div>
-        <span class="control-divider" aria-hidden="true"></span>
-        <div class="control-group" aria-label="Kontrol gangguan simulasi">
-          <button id="btn-down" class="button button--warning" type="button" disabled>Simulate Downtime</button>
-          <button id="btn-recover" class="button" type="button" disabled>Recover</button>
-          <button id="btn-ng" class="button button--danger-quiet" type="button" disabled>Force NG (unit berikutnya)</button>
+
+        <!-- Baris 2: simulasi gangguan -->
+        <div class="toolbar toolbar--fault">
+          <span class="toolbar-label">Simulasi gangguan</span>
+          <div class="control-group" aria-label="Kontrol gangguan simulasi">
+            <button id="btn-down" class="button button--warning" type="button" disabled>Simulate Downtime</button>
+            <button id="btn-recover" class="button" type="button" disabled>Recover</button>
+            <button id="btn-ng" class="button button--danger-quiet" type="button" disabled>Force NG (unit berikutnya)</button>
+          </div>
         </div>
+
       </div>
     </section>
 
+    <!-- Overview -->
     <section class="panel panel--overview" aria-labelledby="overview-title">
       <div class="section-heading section-heading--compact">
         <div>
@@ -69,6 +106,7 @@
         </div>
         <span class="section-index">01</span>
       </div>
+
       <div class="work-order-summary">
         <div class="summary-heading">
           <span class="micro-label">ACTIVE WORK ORDER</span>
@@ -77,6 +115,7 @@
         <div class="progress-track" aria-label="Progress produksi"><div id="progress-bar"></div></div>
         <div class="progress-legend"><span>Production progress</span><span>Target output</span></div>
       </div>
+
       <div class="kpi-section">
         <div class="subsection-heading"><h3>Key production indicators</h3><span>API METRICS</span></div>
         <div class="kpis">
@@ -88,6 +127,7 @@
           <div class="kpi kpi--estimate"><span>OEE <i>EST.</i></span><b id="kpi-oee">N/A</b><small>Estimated indicator</small></div>
         </div>
       </div>
+
       <div class="station-section">
         <div class="subsection-heading"><h3>Workstation status</h3><span>3 STATIONS</span></div>
         <div class="stations">
@@ -113,6 +153,7 @@
       </div>
     </section>
 
+    <!-- Event log -->
     <section class="panel panel--events" aria-labelledby="events-title">
       <div class="section-heading section-heading--compact">
         <div>
@@ -123,12 +164,22 @@
       </div>
       <div class="table-frame">
         <table>
-          <thead><tr><th scope="col">Timestamp</th><th scope="col">Event description</th></tr></thead>
-          <tbody id="event-log"><tr class="empty-row"><td colspan="2">Belum ada aktivitas. Buat work order untuk memulai produksi.</td></tr></tbody>
+          <thead>
+            <tr>
+              <th scope="col">Timestamp</th>
+              <th scope="col">Event description</th>
+            </tr>
+          </thead>
+          <tbody id="event-log">
+            <tr class="empty-row">
+              <td colspan="2">Belum ada aktivitas. Buat work order untuk memulai produksi.</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </section>
 
+    <!-- Work order -->
     <section class="panel panel--workorder" aria-labelledby="workorder-title">
       <div class="section-heading section-heading--compact">
         <div>
@@ -137,14 +188,25 @@
         </div>
         <span class="section-index">03</span>
       </div>
+
       <p class="section-description workorder-description">Atur target produksi dan estimasi tingkat defect sebelum menjalankan simulasi.</p>
+
       <form id="wo-form">
-        <label for="in-target">Target produksi <span>UNIT</span><input id="in-target" type="number" min="1" max="100" step="1" value="20" required /></label>
-        <label for="in-ngrate">NG rate <span>PERCENT</span><input id="in-ngrate" type="number" min="0" max="100" step="any" value="15" required /></label>
+        <label for="in-target">Target produksi <span>UNIT</span>
+          <input id="in-target" type="number" min="1" max="100" step="1" value="20" required />
+        </label>
+        <label for="in-ngrate">NG rate <span>PERCENT</span>
+          <input id="in-ngrate" type="number" min="0" max="100" step="any" value="15" required />
+        </label>
         <button type="submit" class="button button--primary submit-button"><span class="button-symbol" aria-hidden="true">＋</span> Buat WO dan Run</button>
       </form>
-      <div class="process-note"><span class="note-mark" aria-hidden="true">i</span><p><strong>Process configuration</strong>Durasi proses tetap: loading 2 s, assembly 3 s, inspeksi 2 s. Jumlah NG dihitung dari target dikali NG rate, lalu dibulatkan. Unit NG dipilih secara acak.</p></div>
+
+      <div class="process-note">
+        <span class="note-mark" aria-hidden="true">i</span>
+        <p><strong>Process configuration</strong>Durasi proses tetap: loading 2 s, assembly 3 s, inspeksi 2 s. Jumlah NG dihitung dari target dikali NG rate, lalu dibulatkan. Unit NG dipilih secara acak.</p>
+      </div>
     </section>
+
   </main>
 
   <script type="module" src="/src/main.js"></script>
