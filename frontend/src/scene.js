@@ -2773,10 +2773,18 @@ export class Scene3D {
 
             if (!engineState) return;
 
+
+            const speed = THREE.MathUtils.clamp(
+                Number(engineState.speed) || 1,
+                0.5,
+                3
+            );
+
             const dt = Math.min(
                 Math.max(delta, 0),
                 0.05
-            );
+            ) * speed;
+
 
             const elapsed =
                 performance.now() * 0.001;

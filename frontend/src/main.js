@@ -11,6 +11,40 @@ const engine = new Engine();
 const scene = new Scene3D($("stage"), engine);
 const dash = new Dashboard(engine);
 
+// ===== Simulation Speed Control =====
+(function initSimulationSpeed() {
+    const speedInput = $("simulation-speed");
+    const speedValue = $("speed-value");
+
+    if (!speedInput || !speedValue) return;
+
+    const savedSpeed = Number(
+        localStorage.getItem("mes-simulation-speed") || 1
+    );
+
+    const initialSpeed = Number.isFinite(savedSpeed)
+        ? Math.min(3, Math.max(0.5, savedSpeed))
+        : 1;
+
+    engine.setSpeed(initialSpeed);
+
+    speedInput.value = String(initialSpeed);
+    speedValue.textContent = `${initialSpeed.toFixed(1)}x`;
+
+    speedInput.addEventListener("input", () => {
+        const speed = Number(speedInput.value);
+
+        engine.setSpeed(speed);
+
+        speedValue.textContent = `${speed.toFixed(1)}x`;
+
+        localStorage.setItem(
+            "mes-simulation-speed",
+            String(speed)
+        );
+    });
+})();
+
 // ===== Theme toggle =====
 (function initTheme() {
     const btn = $("theme-toggle");
@@ -252,7 +286,6 @@ function loop() {
             ? "Kembalikan ukuran simulasi"
             : "Perbesar area simulasi";
 
-        // Resize renderer setelah layout berubah
         requestAnimationFrame(() => {
             window.dispatchEvent(new Event("resize"));
         });

@@ -45,9 +45,23 @@ export class Engine extends EventTarget {
     this.autoIntervalSeconds = autoIntervalSeconds;
     this.autoDurationSeconds = autoDurationSeconds;
 
+    // Simulation speed multiplier
+    this.speed = 1;
+
     this.forceNG = false;
 
     this.clear();
+  }
+
+  // SIMULATION SPEED CONTROL
+  setSpeed(value) {
+    const speed = Number(value);
+
+    if (!Number.isFinite(speed)) return;
+
+    this.speed = Math.min(3, Math.max(0.5, speed));
+
+    this.emit("change");
   }
 
   // ==================================================
@@ -352,7 +366,8 @@ export class Engine extends EventTarget {
       return;
     }
 
-    let dt = Math.min(realDt, 0.1);
+    // Apply simulation speed multiplier
+    let dt = Math.min(realDt, 0.1) * this.speed;
 
     // ================================================
     // ACTIVE DOWNTIME
