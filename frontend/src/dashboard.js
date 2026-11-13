@@ -7,6 +7,13 @@ const pct = (v) => (v == null ? "N/A" : (v * 100).toFixed(1) + "%");
 const sec = (v) => (v == null ? "N/A" : v.toFixed(1) + " s");
 const clockOf = (iso) => new Date(iso).toLocaleTimeString("id-ID", { hour12: false });
 
+// Kartu KPI downtime tambahan (dibuat dari JS, index.html tidak perlu diubah)
+const DOWNTIME_KPIS = [
+  ["kpi-dt-count", "Downtime count", "0", "Kejadian gangguan"],
+  ["kpi-mttr", "MTTR", "N/A", "Rata-rata waktu pemulihan"],
+  ["kpi-availability", "Availability", "N/A", "Waktu mesin aktif"],
+];
+
 export class Dashboard {
   constructor(engine) {
     this.engine = engine;
@@ -14,10 +21,17 @@ export class Dashboard {
     this.allEvents = [];
     this.eventFilter = "all";
     this.filterBar = null;
+    this.banner = null;
+    this.bannerText = null;
+
+    this.ensureDowntimeKpis();
+    this.ensureDowntimeBanner();
+
     engine.addEventListener("change", () => this.renderLive());
     engine.addEventListener("finished", () => this.refresh()); // update segera setelah unit selesai
     engine.addEventListener("loaded", () => this.refresh());
     setInterval(() => this.refresh(), 1500);
+    setInterval(() => this.renderBanner(), 250); // hitung mundur pemulihan
     this.renderLive();
   }
 
@@ -35,6 +49,7 @@ export class Dashboard {
       card.className = "station " + st;
       card.querySelector(".st-status").textContent = st.charAt(0).toUpperCase() + st.slice(1);
     }
+    this.renderBanner();
   }
 
   async refresh() {
@@ -61,14 +76,99 @@ export class Dashboard {
     $("kpi-cycle").textContent = sec(d.avg_cycle_seconds);
     $("kpi-downtime").textContent = sec(d.downtime_seconds);
     $("kpi-oee").textContent = pct(d.oee);
+    const availability = $("kpi-availability");
+    if (availability) availability.textContent = pct(d.availability);
     for (const key of STATIONS) {
       document.querySelector(`[data-station="${key}"] .st-down`).textContent = sec(d.downtime_by_station[key] || 0);
     }
   }
 
+  // ---------- KPI downtime ----------
+  ensureDowntimeKpis() {
+    const grid = document.querySelector(".kpis");
+    if (!grid || grid.querySelector("#kpi-dt-count")) return;
+    for (const [id, label, initial, note] of DOWNTIME_KPIS) {
+      const card = document.createElement("div");
+      card.className = "kpi";
+      const title = document.createElement("span");
+      title.textContent = label;
+      const value = document.createElement("b");
+      value.id = id;
+      value.textContent = initial;
+      const small = document.createElement("small");
+      small.textContent = note;
+      card.append(title, value, small);
+      grid.appendChild(card);
+    }
+  }
+
+  // Count dan MTTR dihitung dari event log (maks. 100 event terakhir dari backend).
+  // MTTR hanya memakai downtime yang sudah berakhir.
+  downtimeStats(items) {
+    let count = 0;
+    let total = 0;
+    let finished = 0;
+    for (const ev of items) {
+      if (/downtime dimulai/i.test(ev.message)) count++;
+      const m = /berakhir \(([\d.]+) s\)/i.exec(ev.message);
+      if (m) {
+        total += parseFloat(m[1]);
+        finished++;
+      }
+    }
+    return { count, mttr: finished ? total / finished : null };
+  }
+
+  renderDowntimeKpis(items) {
+    const { count, mttr } = this.downtimeStats(items);
+    const countEl = $("kpi-dt-count");
+    const mttrEl = $("kpi-mttr");
+    if (countEl) countEl.textContent = String(count);
+    if (mttrEl) mttrEl.textContent = sec(mttr);
+  }
+
+  // ---------- banner peringatan downtime + hitung mundur ----------
+  ensureDowntimeBanner() {
+    if (this.banner) return;
+    const el = document.createElement("div");
+    el.setAttribute("role", "alert");
+    el.style.cssText =
+      "display:none;margin-bottom:16px;padding:12px 16px;border-radius:8px;" +
+      "border:1px solid color-mix(in srgb, var(--ng) 40%, transparent);" +
+      "background:color-mix(in srgb, var(--ng) 12%, transparent);" +
+      "color:var(--ng);font-size:13px;font-weight:600;";
+    const text = document.createElement("span");
+    el.appendChild(text);
+
+    const anchor = document.querySelector(".work-order-summary");
+    if (anchor) anchor.after(el);
+    else document.querySelector(".kpi-section")?.before(el);
+
+    this.banner = el;
+    this.bannerText = text;
+  }
+
+  renderBanner() {
+    if (!this.banner) return;
+    const e = this.engine;
+    const active = Boolean(e.wo && e.downtime);
+    this.banner.style.display = active ? "block" : "none";
+    if (!active) return;
+
+    let text = "Gangguan di Wheel Assembly. ";
+    if (e.downtimeSource === "auto") {
+      const remaining = Math.max(0, e.autoRemaining || 0);
+      text += `Pulih otomatis dalam ${remaining.toFixed(1)} s.`;
+    } else {
+      text += "Menunggu tombol Recover.";
+    }
+    this.bannerText.textContent = text;
+  }
+
   // ---------- event log + filter ----------
   renderEvents(items) {
     this.allEvents = items || [];
+    this.renderDowntimeKpis(this.allEvents);
     this.ensureEventFilter();
     this.drawEvents(this.filterEvents(this.allEvents));
   }
