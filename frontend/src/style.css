@@ -584,12 +584,21 @@ tbody tr:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent
   }
 }
 
-.event-downtime td {
-  color: #f5b041;
-  background: rgba(245, 176, 65, 0.08);
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 .event-downtime td {
   color: var(--warn);
   background: color-mix(in srgb, var(--warn) 10%, transparent);
+}
+
+.event-downtime.event-recovered td {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 10%, transparent);
 }

@@ -77,7 +77,10 @@ export class Dashboard {
     $("event-log").replaceChildren(
       ...items.map((e) => {
         const row = document.createElement("tr");
-        if (/downtime/i.test(e.message)) row.classList.add("event-downtime");
+        if (/downtime/i.test(e.message)) {
+          row.classList.add("event-downtime");
+          if (/berakhir/i.test(e.message)) row.classList.add("event-recovered");
+        }
         for (const text of [clockOf(e.created_at), e.message]) {
           const td = document.createElement("td");
           td.textContent = text; // textContent, bukan innerHTML
