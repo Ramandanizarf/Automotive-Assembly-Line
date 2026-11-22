@@ -20,7 +20,7 @@ export const api = {
   createWorkOrder: (body) => request("POST", "/work-orders", body),
   finishUnit: (body) => request("POST", "/units/finish", body),
   downtimeStart: (workOrderId, station = "assembly") => request("POST", "/downtime/start", { work_order_id: workOrderId, station }),
-  downtimeEnd: (workOrderId) => request("POST", "/downtime/end", { work_order_id: workOrderId }),
+  downtimeEnd: (workOrderId, durationSeconds) => request("POST", "/downtime/end", { work_order_id: workOrderId, duration_seconds: durationSeconds }),
   dashboard: (workOrderId) => request("GET", "/dashboard" + (workOrderId ? `?work_order_id=${workOrderId}` : "")),
   events: (workOrderId, limit = 15) => request("GET", `/events?work_order_id=${workOrderId}&limit=${limit}`),
   reset: (workOrderId) => request("POST", "/reset", { work_order_id: workOrderId }),

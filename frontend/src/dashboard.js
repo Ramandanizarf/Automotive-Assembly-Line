@@ -78,6 +78,10 @@ export class Dashboard {
     $("kpi-oee").textContent = pct(d.oee);
     const availability = $("kpi-availability");
     if (availability) availability.textContent = pct(d.availability);
+    const dtCount = $("kpi-dt-count");
+    if (dtCount) dtCount.textContent = String(d.downtime_count ?? 0);
+    const mttr = $("kpi-mttr");
+    if (mttr) mttr.textContent = sec(d.mttr_seconds);
     for (const key of STATIONS) {
       document.querySelector(`[data-station="${key}"] .st-down`).textContent = sec(d.downtime_by_station[key] || 0);
     }
@@ -100,31 +104,6 @@ export class Dashboard {
       card.append(title, value, small);
       grid.appendChild(card);
     }
-  }
-
-  // Count dan MTTR dihitung dari event log (maks. 100 event terakhir dari backend).
-  // MTTR hanya memakai downtime yang sudah berakhir.
-  downtimeStats(items) {
-    let count = 0;
-    let total = 0;
-    let finished = 0;
-    for (const ev of items) {
-      if (/downtime dimulai/i.test(ev.message)) count++;
-      const m = /berakhir \(([\d.]+) s\)/i.exec(ev.message);
-      if (m) {
-        total += parseFloat(m[1]);
-        finished++;
-      }
-    }
-    return { count, mttr: finished ? total / finished : null };
-  }
-
-  renderDowntimeKpis(items) {
-    const { count, mttr } = this.downtimeStats(items);
-    const countEl = $("kpi-dt-count");
-    const mttrEl = $("kpi-mttr");
-    if (countEl) countEl.textContent = String(count);
-    if (mttrEl) mttrEl.textContent = sec(mttr);
   }
 
   // ---------- banner peringatan downtime + hitung mundur ----------
@@ -168,7 +147,6 @@ export class Dashboard {
   // ---------- event log + filter ----------
   renderEvents(items) {
     this.allEvents = items || [];
-    this.renderDowntimeKpis(this.allEvents);
     this.ensureEventFilter();
     this.drawEvents(this.filterEvents(this.allEvents));
   }

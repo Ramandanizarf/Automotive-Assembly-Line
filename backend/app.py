@@ -102,7 +102,11 @@ def build_dashboard(conn, wo):
     total, good, defect, run_time = r["total"], r["good"], r["defect"], r["run_time"]
 
     by_station, active = {}, None
+    dt_count, dt_done = 0, []   # jumlah kejadian downtime, dan durasi yang sudah selesai (untuk MTTR)
     for d in conn.execute("SELECT * FROM downtime_logs WHERE work_order_id = ?", (wo["id"],)):
+        dt_count += 1
+        if d["ended_at"] is not None:
+            dt_done.append(d["duration_seconds"])
         if d["ended_at"] is None:
             active = d["station"]
             dur = (now() - datetime.fromisoformat(d["started_at"])).total_seconds()
@@ -127,6 +131,8 @@ def build_dashboard(conn, wo):
         "quality_rate": (good / total) if total else None,      # pecahan 0-1
         "avg_cycle_seconds": (run_time / total) if total else None,
         "downtime_seconds": downtime, "downtime_by_station": by_station, "active_downtime": active,
+        "downtime_count": dt_count,                                   # semua kejadian, termasuk yang masih berjalan
+        "mttr_seconds": (sum(dt_done) / len(dt_done)) if dt_done else None,   # rata-rata durasi downtime yang SUDAH selesai
         "next_unit_no": total + 1,
         **oee,
     }
@@ -228,12 +234,14 @@ def downtime_start():
     return ok({"station": station})
 
 
-def close_downtime(conn, wo_id):
+def close_downtime(conn, wo_id, sim_duration=None):
     d = conn.execute("SELECT * FROM downtime_logs WHERE work_order_id = ? AND ended_at IS NULL", (wo_id,)).fetchone()
     if d is None:
         return None
     end = now()
-    dur = round((end - datetime.fromisoformat(d["started_at"])).total_seconds(), 2)
+    wall = (end - datetime.fromisoformat(d["started_at"])).total_seconds()
+    # prioritaskan lama downtime dalam detik SIMULASI dari frontend; jam dinding hanya cadangan
+    dur = round(sim_duration if sim_duration is not None else wall, 2)
     conn.execute("UPDATE downtime_logs SET ended_at = ?, duration_seconds = ? WHERE id = ?", (stamp(end), dur, d["id"]))
     log_event(conn, wo_id, f"Downtime {STATIONS[d['station']]} berakhir ({dur:.1f} s)")
     return {"station": d["station"], "duration_seconds": dur}
@@ -246,7 +254,8 @@ def downtime_end():
     wo = get_wo(conn, body.get("work_order_id")) if body.get("work_order_id") is not None else None
     if wo is None:
         return fail("work_order_id tidak ditemukan", 404)
-    result = close_downtime(conn, wo["id"])
+    sim = as_num(body.get("duration_seconds"))
+    result = close_downtime(conn, wo["id"], sim if sim is not None and sim >= 0 else None)
     if result is None:
         return fail("Tidak ada downtime yang aktif", 409)
     conn.commit()

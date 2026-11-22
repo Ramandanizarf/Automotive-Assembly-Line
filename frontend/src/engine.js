@@ -91,6 +91,7 @@ export class Engine extends EventTarget {
 
     this.autoElapsed = 0;
     this.autoRemaining = 0;
+    this.downtimeSim = 0; // lama downtime dalam DETIK SIMULASI
 
     this.nextAutoInterval =
       this.autoIntervalSeconds ??
@@ -204,6 +205,7 @@ export class Engine extends EventTarget {
 
     this.downtime = true;
     this.downtimeSource = source;
+    this.downtimeSim = 0;
 
     // Random duration for automatic downtime
     this.autoRemaining =
@@ -285,7 +287,7 @@ export class Engine extends EventTarget {
 
     const generation = this.generation;
 
-    api.downtimeEnd(this.wo.id)
+    api.downtimeEnd(this.wo.id, Math.round(this.downtimeSim * 100) / 100)
 
       .then(() => {
 
@@ -374,6 +376,8 @@ export class Engine extends EventTarget {
     // ================================================
 
     if (this.downtime) {
+
+      this.downtimeSim += dt; // hitung dalam waktu simulasi (ikut speed dan pause)
 
       if (
         this.downtimeSource === "auto" &&
