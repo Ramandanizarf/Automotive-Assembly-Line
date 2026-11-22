@@ -509,6 +509,11 @@ input:focus-visible {
   height: 100%;
 }
 
+.layout.expanded-simulation #stage {
+  max-width: none;
+  height: clamp(420px, 38vw, 720px);
+}
+
 #stage::before,
 #stage::after {
   content: "";
